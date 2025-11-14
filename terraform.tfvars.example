@@ -1,0 +1,28 @@
+# プロジェクト名
+project_name = "my-sample-project"
+
+# 環境名
+environment = "dev"
+
+# AWSリージョン
+aws_region = "ap-northeast-1"
+
+# インスタンスタイプ
+instance_type = "t3.small"
+
+# 許可するCIDRブロック
+allowed_cidr_blocks = [
+  "10.0.0.0/8",
+  "192.168.0.0/16"
+]
+
+# 共通タグ
+tags = {
+  ManagedBy = "Terraform"
+  Project   = "DocumentConvert"
+  Team      = "DevOps"
+}
+
+# 監視の有効化
+enable_monitoring = true
+
