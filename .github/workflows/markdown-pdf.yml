@@ -22,7 +22,7 @@ jobs:
       - name: Install pandoc and LaTeX
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc texlive-latex-base texlive-latex-extra
+          sudo apt-get install -y pandoc texlive-latex-base texlive-latex-extra texlive-xetex texlive-lang-japanese fonts-ipaexfont
 
       - name: Convert Markdown files to PDF
         id: convert
@@ -40,7 +40,10 @@ jobs:
           for file in "${files[@]}"; do
             output="pdf/${file%.md}.pdf"
             mkdir -p "$(dirname "$output")"
-            pandoc "$file" -o "$output"
+            pandoc "$file" \
+              --pdf-engine=xelatex \
+              -V mainfont=IPAGothic \
+              -o "$output"
             echo "Converted $file -> $output"
           done
 
