@@ -1,0 +1,56 @@
+name: Markdown PDFs
+
+on:
+  workflow_dispatch:
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate Terraform docs
+        uses: terraform-docs/gh-actions@v1.2.0
+        with:
+          working-dir: .
+          config-file: .terraform-docs.yml
+
+      - name: Install pandoc and LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-latex-base
+
+      - name: Convert Markdown files to PDF
+        id: convert
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(git ls-files '*.md')
+
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "generated=false" >> "$GITHUB_OUTPUT"
+            echo "Markdownファイルが見つからなかったため、PDF生成をスキップします。"
+            exit 0
+          fi
+
+          for file in "${files[@]}"; do
+            output="pdf/${file%.md}.pdf"
+            mkdir -p "$(dirname "$output")"
+            pandoc "$file" -o "$output"
+            echo "Converted $file -> $output"
+          done
+
+          echo "generated=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload PDF artifact
+        if: steps.convert.outputs.generated == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: markdown-pdf
+          path: pdf
+          if-no-files-found: error
+
