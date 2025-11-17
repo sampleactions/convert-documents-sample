@@ -1,0 +1,109 @@
+\usepackage{fontspec}
+\usepackage{xeCJK}
+
+% 日本語フォント設定
+\setCJKmainfont{IPAGothic}
+
+% 絵文字フォント設定（フォールバック）
+\newfontfamily\emojifont{Noto Color Emoji}[Renderer=Harfbuzz]
+
+% フォントマッピング: 絵文字範囲をNoto Color Emojiにマッピング
+\XeTeXinterchartokenstate=1
+\newXeTeXintercharclass\emojiclass
+
+% 絵文字の主要なUnicode範囲を指定
+% U+2600-U+26FF: Miscellaneous Symbols
+\count255=`\^^2600
+\loop
+  \XeTeXcharclass\count255=\emojiclass
+  \advance\count255 by 1
+  \ifnum\count255<`\^^2700
+\repeat
+
+% U+2700-U+27BF: Dingbats
+\count255=`\^^2700
+\loop
+  \XeTeXcharclass\count255=\emojiclass
+  \advance\count255 by 1
+  \ifnum\count255<`\^^27c0
+\repeat
+
+% U+1F300-U+1F5FF: Miscellaneous Symbols and Pictographs
+\count255=`\^^01f300
+\loop
+  \XeTeXcharclass\count255=\emojiclass
+  \advance\count255 by 1
+  \ifnum\count255<`\^^01f600
+\repeat
+
+% U+1F600-U+1F64F: Emoticons
+\count255=`\^^01f600
+\loop
+  \XeTeXcharclass\count255=\emojiclass
+  \advance\count255 by 1
+  \ifnum\count255<`\^^01f650
+\repeat
+
+% U+1F680-U+1F6FF: Transport and Map Symbols
+\count255=`\^^01f680
+\loop
+  \XeTeXcharclass\count255=\emojiclass
+  \advance\count255 by 1
+  \ifnum\count255<`\^^01f700
+\repeat
+
+% U+1F700-U+1F77F: Alchemical Symbols
+\count255=`\^^01f700
+\loop
+  \XeTeXcharclass\count255=\emojiclass
+  \advance\count255 by 1
+  \ifnum\count255<`\^^01f780
+\repeat
+
+% U+1F780-U+1F7FF: Geometric Shapes Extended
+\count255=`\^^01f780
+\loop
+  \XeTeXcharclass\count255=\emojiclass
+  \advance\count255 by 1
+  \ifnum\count255<`\^^01f800
+\repeat
+
+% U+1F900-U+1F9FF: Supplemental Symbols and Pictographs
+\count255=`\^^01f900
+\loop
+  \XeTeXcharclass\count255=\emojiclass
+  \advance\count255 by 1
+  \ifnum\count255<`\^^01fa00
+\repeat
+
+% U+1FA00-U+1FA6F: Chess Symbols
+\count255=`\^^01fa00
+\loop
+  \XeTeXcharclass\count255=\emojiclass
+  \advance\count255 by 1
+  \ifnum\count255<`\^^01fa70
+\repeat
+
+% U+1FA70-U+1FAFF: Symbols and Pictographs Extended-A
+\count255=`\^^01fa70
+\loop
+  \XeTeXcharclass\count255=\emojiclass
+  \advance\count255 by 1
+  \ifnum\count255<`\^^01fb00
+\repeat
+
+% U+1F1E6-U+1F1FF: Regional Indicator Symbols (国旗用)
+\count255=`\^^01f1e6
+\loop
+  \XeTeXcharclass\count255=\emojiclass
+  \advance\count255 by 1
+  \ifnum\count255<`\^^01f200
+\repeat
+
+% U+2B50: Star (個別指定が必要な場合)
+\XeTeXcharclass `\^^02b50 = \emojiclass
+
+% フォントマッピング設定
+\XeTeXinterchartoks 0 \emojiclass = {\emojifont}
+\XeTeXinterchartoks 255 \emojiclass = {\emojifont}
+

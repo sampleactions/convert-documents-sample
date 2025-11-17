@@ -22,7 +22,7 @@ jobs:
       - name: Install pandoc and LaTeX
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc texlive-latex-base texlive-latex-extra texlive-xetex texlive-lang-japanese fonts-ipaexfont
+          sudo apt-get install -y pandoc texlive-latex-base texlive-latex-extra texlive-xetex texlive-lang-japanese fonts-ipaexfont fonts-noto-color-emoji
 
       - name: Convert Markdown files
         id: convert
@@ -46,7 +46,8 @@ jobs:
 
             pandoc "$file" \
               --pdf-engine=xelatex \
-              -V mainfont=IPAGothic \
+              -H latex-header.tex \
+              -V geometry:margin=1in \
               -o "$pdf_output"
             pandoc "$file" -o "$docx_output"
 
