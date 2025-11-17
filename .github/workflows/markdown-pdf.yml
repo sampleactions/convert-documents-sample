@@ -24,6 +24,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y pandoc texlive-latex-base texlive-latex-extra texlive-xetex texlive-lang-japanese fonts-ipaexfont fonts-noto-color-emoji
 
+      - name: Verify reference.docx exists
+        run: |
+          if [ ! -f "reference.docx" ]; then
+            echo "エラー: reference.docxが見つかりません。"
+            exit 1
+          fi
+          echo "reference.docxが見つかりました。"
+
       - name: Convert Markdown files
         id: convert
         shell: bash
@@ -49,7 +57,10 @@ jobs:
               -H latex-header.tex \
               -V geometry:margin=1in \
               -o "$pdf_output"
-            pandoc "$file" -o "$docx_output"
+            # reference.docxを使用してWordファイルを生成
+            pandoc "$file" \
+              --reference-doc=reference.docx \
+              -o "$docx_output"
 
             echo "Converted $file -> $pdf_output"
             echo "Converted $file -> $docx_output"
