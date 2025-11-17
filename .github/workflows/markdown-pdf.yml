@@ -122,3 +122,101 @@ jobs:
           path: docx
           if-no-files-found: error
 
+  generate-pdf-from-html:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate Terraform docs
+        uses: terraform-docs/gh-actions@v1.2.0
+        with:
+          working-dir: .
+          config-file: .terraform-docs.yml
+
+      - name: Install pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: Install Chrome
+        run: |
+          sudo apt-get install -y wget gnupg
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Convert Markdown files to HTML
+        id: convert-html
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(git ls-files '*.md')
+
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "generated=false" >> "$GITHUB_OUTPUT"
+            echo "Markdownファイルが見つからなかったため、HTML生成をスキップします。"
+            exit 0
+          fi
+
+          mkdir -p html
+          for file in "${files[@]}"; do
+            html_output="html/${file%.md}.html"
+            mkdir -p "$(dirname "$html_output")"
+
+            pandoc "$file" \
+              --standalone \
+              --self-contained \
+              -o "$html_output"
+
+            echo "Converted $file -> $html_output"
+          done
+
+          echo "generated=true" >> "$GITHUB_OUTPUT"
+
+      - name: Convert HTML files to PDF using Headless Chrome
+        id: convert-pdf
+        if: steps.convert-html.outputs.generated == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t html_files < <(find html -name '*.html' -type f)
+
+          if [ "${#html_files[@]}" -eq 0 ]; then
+            echo "generated=false" >> "$GITHUB_OUTPUT"
+            echo "HTMLファイルが見つからなかったため、PDF生成をスキップします。"
+            exit 0
+          fi
+
+          mkdir -p pdf-from-html
+          for html_file in "${html_files[@]}"; do
+            # HTMLファイルのパスから相対パスを取得
+            relative_path="${html_file#html/}"
+            pdf_output="pdf-from-html/${relative_path%.html}.pdf"
+            mkdir -p "$(dirname "$pdf_output")"
+
+            # Headless ChromeでHTMLを開いてPDFに変換
+            google-chrome --headless \
+              --disable-gpu \
+              --no-sandbox \
+              --print-to-pdf="$pdf_output" \
+              --print-to-pdf-no-header \
+              "file://$(pwd)/$html_file"
+
+            echo "Converted $html_file -> $pdf_output"
+          done
+
+          echo "generated=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload PDF from HTML artifact
+        if: steps.convert-pdf.outputs.generated == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: markdown-pdf-from-html
+          path: pdf-from-html
+          if-no-files-found: error
+
