@@ -137,10 +137,10 @@ jobs:
           working-dir: .
           config-file: .terraform-docs.yml
 
-      - name: Install pandoc
+      - name: Install pandoc and Japanese fonts
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc
+          sudo apt-get install -y pandoc fonts-noto-cjk fonts-noto-color-emoji
 
       - name: Install Chrome
         run: |
@@ -164,6 +164,14 @@ jobs:
           fi
 
           mkdir -p html
+          # 日本語フォント指定のCSSを一時ファイルに作成
+          font_css_file=$(mktemp)
+          cat > "$font_css_file" <<'EOF'
+body, p, div, span, h1, h2, h3, h4, h5, h6, li, td, th {
+  font-family: "Noto Sans CJK JP", "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", "MS PGothic", sans-serif;
+}
+EOF
+
           for file in "${files[@]}"; do
             html_output="html/${file%.md}.html"
             mkdir -p "$(dirname "$html_output")"
@@ -171,10 +179,13 @@ jobs:
             pandoc "$file" \
               --standalone \
               --self-contained \
+              --css="$font_css_file" \
               -o "$html_output"
 
             echo "Converted $file -> $html_output"
           done
+          
+          rm -f "$font_css_file"
 
           echo "generated=true" >> "$GITHUB_OUTPUT"
 
